@@ -1,42 +1,12 @@
-import uuid
-
-
-
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from pyromod.exceptions import ListenerTimeout
+from pyrogram.types import InlineKeyboardMarkup
 from pyromod.types import ListenerTypes
 
-from vars import Vars, TempVars
-
-from pyromod import Client, Message
+from bot import app
+from vars import Vars, Buttons
+from pyromod import Client
 from pyromod.helpers import ikb
 from pyrogram import enums
-
-app: Client = Client("bot", api_id=Vars.API_ID, api_hash=Vars.API_HASH, bot_token=Vars.BOT_TOKEN)
-
-
-developers_types = [
-    "java_dev",
-    "ios_dev",
-    "flutter_dev",
-    "ios_dev",
-    "android_dev",
-    "qa_engineer",
-]
-
-seniority_levels = [
-    'intern',
-    'junior',
-    'middle',
-    'senior',
-    'lead',
-    'architect',
-]
-
-
-timeout = 60
-
 
 
 '''@app.on_message(filters.command(['start']) & filters.private)
@@ -54,32 +24,99 @@ async def start_command(c: Client, m):
     print(m)'''
 
 
+
 @app.on_message(filters.command(['add_job']) & filters.private)
-async def start_command(c: Client, m):
+async def add_job(c: Client, m):
     red_flag = False
     rewarded_id = None
     chat_id = m.chat.id
 
-    temp_id = str(uuid.uuid4())[:8]
-    print(temp_id)
+    await app.send_chat_action(chat_id, enums.ChatAction.TYPING)
 
-    dev_type = ikb(
-        [
-            [("Java Developer",  f"{temp_id}|java_dev")],
-            [("iOS Developer",  f"{temp_id}|ios_dev")],
-            [("Flutter Developer",  f"{temp_id}|flutter_dev")],
-            [("iOS Developer",  f"{temp_id}|ios_dev")],
-            [("Android Developer",  f"{temp_id}|android_dev")],
-            [("QA Engineer",  f"{temp_id}|qa_engineer")],
-        ]
+    developers_type_response = await c.ask(
+        chat_id=chat_id,
+        text="You are a:",
+        timeout=Vars.TIMEOUT,
+        listener_type=ListenerTypes.CALLBACK_QUERY,
+        reply_markup=Buttons.DEV_TYPE_BUTTONS
     )
 
-    TempVars.Temporary_Vars[chat_id] = {
-        temp_id: {}
-    }
+    developers_type = developers_type_response.data
 
-    await app.send_chat_action(chat_id, enums.ChatAction.TYPING)
-    await app.send_message(chat_id=chat_id, text="You are a:", reply_markup=dev_type)
+    list_of_buttons: list[[InlineKeyboardMarkup]] = developers_type_response.message.reply_markup.inline_keyboard
+    text_developer = [button[0].text for button in list_of_buttons if button[0].callback_data == developers_type][0]
+
+    '''# region Title Handler
+    title_response: Client = await c.ask(
+        chat_id=chat_id,
+        text=f"What is the job's title as a {text_developer}?\n",
+        timeout=timeout,
+        filters=filters.text
+    )
+
+    counter = 0
+    while not title_response.text.lower().startswith('title: '):
+
+        title_response: Client = await c.ask(chat_id=chat_id,
+                                             text=f"Please put the title as the format:\ntitle: 'title here'",
+                                             timeout=timeout, filters=filters.text
+                                             )
+
+        if counter > 2:
+            await c.send_message(chat_id=chat_id,
+                                 text=f"You can Cancel the process by sendind 'cancel'",
+                                 timeout=timeout, filters=filters.text
+                                 )
+        counter += 1
+
+    title_text = title_response.text
+    # endregion'''
+
+    seniority_levels_response = await c.ask(
+        chat_id=chat_id,
+        text="Seniority :",
+        timeout=Vars.TIMEOUT,
+        listener_type=ListenerTypes.CALLBACK_QUERY,
+        reply_markup=Buttons.SENIORITY_BUTTONS
+    )
+
+    seniority_level = seniority_levels_response.data
+
+    list_of_buttons: list[[InlineKeyboardMarkup]] = seniority_levels_response.message.reply_markup.inline_keyboard
+    text_seniority_level = [button[0].text for button in list_of_buttons if button[0].callback_data == seniority_level][
+        0]
+
+    description_response: Client = await c.ask(
+        chat_id=chat_id,
+        text=f"So you are a {text_seniority_level} {text_developer},\n Please Send the Description Image",
+        timeout=Vars.TIMEOUT,
+        filters=filters.photo
+    )
+
+    description_photo = description_response.photo.file_id
+
+    job_link_response = await c.ask(
+        chat_id=chat_id,
+        text=f"Kindly, Provide the link of this job",
+        timeout=Vars.TIMEOUT,
+        filters=filters.text
+    )
+
+    job_link = job_link_response.text
+
+    await c.send_photo(
+        chat_id=chat_id,
+        photo=description_photo,
+    )
+
+
+    rsp = await c.ask(
+        chat_id=chat_id,
+        text=Vars.JOB_POST.format(text_developer, job_link),
+        timeout=Vars.TIMEOUT,
+        listener_type=ListenerTypes.CALLBACK_QUERY,
+        reply_markup=Buttons.SUBMIT_BUTTONS
+    )
 
 
 @app.on_callback_query()
@@ -88,8 +125,10 @@ async def callback(c: Client, q):
     temp_id: str = q.data.split("|")[0]
     q_data = q.data.split("|")[1]
 
+    pass
 
-    if q_data in developers_types:
+
+'''    if q_data in Lists.DEVELOPERS_TYPES:
         list_of_buttons: list[[InlineKeyboardMarkup]] = q.message.reply_markup.inline_keyboard
         text_developer = [button[0].text for button in list_of_buttons if button[0].callback_data.split("|")[1] == q_data][0]
 
@@ -174,4 +213,4 @@ async def callback(c: Client, q):
         # endregion
 
 
-        print(TempVars.Temporary_Vars)
+        print(TempVars.Temporary_Vars)'''
