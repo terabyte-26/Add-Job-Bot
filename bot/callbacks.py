@@ -3,7 +3,7 @@ from pyrogram.types import InlineKeyboardMarkup
 from pyromod.types import ListenerTypes
 
 from bot import app
-from vars import Vars, Buttons
+from vars import Vars, Buttons, Tags
 from pyromod import Client
 from pyromod.helpers import ikb
 from pyrogram import enums
@@ -109,23 +109,88 @@ async def add_job(c: Client, m):
         photo=description_photo,
     )
 
-
-    rsp = await c.ask(
+    submit_response = await c.ask(
         chat_id=chat_id,
-        text=Vars.JOB_POST.format(text_developer, job_link),
+        text=Vars.JOB_POST.format(
+            text_developer,
+            text_seniority_level,
+            job_link
+        ),
         timeout=Vars.TIMEOUT,
         listener_type=ListenerTypes.CALLBACK_QUERY,
         reply_markup=Buttons.SUBMIT_BUTTONS
     )
 
+    print(submit_response)
+
+    submit = True if submit_response.data == "submit" else False
+
+
+
+    if submit:
+
+        caption = Vars.JOB_POST.format(
+            text_developer,
+            text_seniority_level,
+            job_link
+        ) + '\n\n' + Tags.LIST[developers_type]
+
+        await c.send_photo(
+            chat_id=Vars.ADMIN_ID,
+            photo=description_photo,
+            caption=caption,
+            reply_markup=Buttons.APPROVING_BUTTONS
+        )
+
+    else:
+
+        current_message_id: int = submit_response.message.id
+
+        await c.delete_messages(
+            chat_id=chat_id,
+            message_ids=[
+                current_message_id,
+                current_message_id-1,
+            ]
+        )
+
+
+
+
 
 @app.on_callback_query()
 async def callback(c: Client, q):
     chat_id = q.from_user.id
-    temp_id: str = q.data.split("|")[0]
-    q_data = q.data.split("|")[1]
+
+    data = q.data
+    m = q.message
+
+    if data in 'verify':
+
+
+        photo = m.photo.file_id
+        caption = m.caption
+        caption_entities = m.caption_entities
+
+        await c.send_photo(
+            chat_id=Vars.CHANNEL_ID,
+            photo=photo,
+            caption=caption,
+            caption_entities=caption_entities
+        )
+
+
+    if data in 'delete':
+        pass
+
+        await q.message.delete()
 
     pass
+
+
+@app.on_message(filters.group & filters.text)
+async def tst(c: Client, m):
+    print(m)
 
 
 '''    if q_data in Lists.DEVELOPERS_TYPES:

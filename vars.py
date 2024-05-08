@@ -17,8 +17,12 @@ class Vars(object):
 
     JOB_POST: str = """
 Job Title: {}
+Seniority: {}
 Job Link: {}
 """.strip()
+
+    ADMIN_ID = 1752221538
+    CHANNEL_ID = -1002091947120
 
 
 class Buttons(object):
@@ -28,7 +32,6 @@ class Buttons(object):
             [("Java Developer", "java_dev")],
             [("iOS Developer", "ios_dev")],
             [("Flutter Developer", "flutter_dev")],
-            [("iOS Developer", "ios_dev")],
             [("Android Developer", "android_dev")],
             [("QA Engineer", "qa_engineer")],
         ]
@@ -52,30 +55,20 @@ class Buttons(object):
         ]
     )
 
-    SUBMIT_BUTTONS: pyromod_helpers = ikb(
+    APPROVING_BUTTONS: pyromod_helpers = ikb(
         [
-            [("Submit ✅", "submit")],
-            [("Cancel ❌", "cancel")],
+            [("Varify ✅", "verify")],
+            [("delete ❌", "delete")],
         ]
     )
 
 
-class Lists(object):
+class Tags(object):
 
-    DEVELOPERS_TYPES: list[str] = [
-        "java_dev",
-        "ios_dev",
-        "flutter_dev",
-        "ios_dev",
-        "android_dev",
-        "qa_engineer",
-    ]
-
-    SENIORITY_LEVELS: list[str] = [
-        'intern',
-        'junior',
-        'middle',
-        'senior',
-        'lead',
-        'architect',
-    ]
+    LIST: dict[str: str] = {
+        "java_dev": '#java',
+        "ios_dev": '#ios',
+        "flutter_dev": '#flutter',
+        "android_dev": '#android',
+        "qa_engineer": '#qa',
+    }
