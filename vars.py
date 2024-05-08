@@ -22,7 +22,8 @@ Job Link: {}
 """.strip()
 
     ADMIN_ID = 1752221538
-    CHANNEL_ID = -1002091947120
+    GROUP_ID = -1002091947120
+    GROUP_LINK = 'https://t.me/auto_job_poster'
 
 
 class Buttons(object):
@@ -61,6 +62,12 @@ class Buttons(object):
             [("delete ❌", "delete")],
         ]
     )
+
+    JOIN_GROUP_BUTTONS: pyromod_helpers = ikb([
+        [('Group', Vars.GROUP_LINK, 'url')],
+        [('Joined ✅', 'joined')]
+
+    ])
 
 
 class Tags(object):

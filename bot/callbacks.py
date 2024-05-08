@@ -1,35 +1,54 @@
-from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup
-from pyromod.types import ListenerTypes
-
 from bot import app
 from vars import Vars, Buttons, Tags
+
 from pyromod import Client
-from pyromod.helpers import ikb
+from pyromod.types import ListenerTypes
+
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardMarkup, Message
 from pyrogram import enums
 
 
-'''@app.on_message(filters.command(['start']) & filters.private)
-async def start_command(c: Client, m):
-    red_flag = False
-    rewarded_id = None
-    chat_id = m.chat.id
+@app.on_message(filters.command(['start']) & filters.private)
+async def start_command(c: Client, m: Message):
+    is_member_in_group: bool = False
+    chat_id: int = m.chat.id
 
-    # await app.send_message(chat_id,'Hello')
+    f_name = m.chat.first_name
+    l_name = m.chat.last_name
 
-    resp = await app.ask(chat_id=chat_id, text="**Welcome to Jobs Bot!**", reply_markup=dev_type, timeout=60)
+    # Is member or not
+    try:
+        await c.get_chat_member(Vars.GROUP_ID, chat_id)
+        is_member_in_group = True
+    except:
+        pass
 
-    print(resp)
+    user_name: str = f'{f_name} {l_name}'
 
-    print(m)'''
+    if is_member_in_group:
+        await c.send_message(
+            chat_id=chat_id,
+            text=f"Welcome Back {user_name}, You can Use /add_job command, and follow the Steps to Add a new Job Post"
+        )
 
+    else:
+        await c.send_message(
+            chat_id=chat_id,
+            text=f"Hello {user_name},\nPlease Join our Group To be Able to Start Posting Jobs, Then retuen and Click on 'Joined' Button To Start The Bot",
+            reply_markup=Buttons.JOIN_GROUP_BUTTONS
+        )
 
 
 @app.on_message(filters.command(['add_job']) & filters.private)
 async def add_job(c: Client, m):
-    red_flag = False
-    rewarded_id = None
-    chat_id = m.chat.id
+    chat_id: int = m.chat.id
+
+    try:
+        await c.get_chat_member(Vars.GROUP_ID, chat_id)
+    except:
+        await start_command(c, m)
+        return
 
     await app.send_chat_action(chat_id, enums.ChatAction.TYPING)
 
@@ -123,9 +142,7 @@ async def add_job(c: Client, m):
 
     print(submit_response)
 
-    submit = True if submit_response.data == "submit" else False
-
-
+    submit: bool = True if submit_response.data == "submit" else False
 
     if submit:
 
@@ -155,127 +172,32 @@ async def add_job(c: Client, m):
         )
 
 
-
-
-
 @app.on_callback_query()
 async def callback(c: Client, q):
-    chat_id = q.from_user.id
+    chat_id: int = q.from_user.id
 
     data = q.data
-    m = q.message
+    m: Message = q.message
 
     if data in 'verify':
-
-
         photo = m.photo.file_id
         caption = m.caption
         caption_entities = m.caption_entities
 
         await c.send_photo(
-            chat_id=Vars.CHANNEL_ID,
+            chat_id=Vars.GROUP_ID,
             photo=photo,
             caption=caption,
             caption_entities=caption_entities
         )
 
-
     if data in 'delete':
-        pass
-
         await q.message.delete()
 
-    pass
+    if data in 'joined':
+        await start_command(c, m)
 
 
 @app.on_message(filters.group & filters.text)
-async def tst(c: Client, m):
-    print(m)
-
-
-'''    if q_data in Lists.DEVELOPERS_TYPES:
-        list_of_buttons: list[[InlineKeyboardMarkup]] = q.message.reply_markup.inline_keyboard
-        text_developer = [button[0].text for button in list_of_buttons if button[0].callback_data.split("|")[1] == q_data][0]
-
-        try:
-
-
-            # region Title Handler
-            title_response: Client = await c.ask(chat_id=chat_id, text=f"`{temp_id}`\nWhat is the job's title as a {text_developer}?\n", timeout=timeout, filters=filters.text)
-            counter = 0
-            while not title_response.text.lower().startswith('title: '):
-
-                title_response: Client = await c.ask(chat_id=chat_id,
-                                                     text=f"Please put the title as the format:\ntitle: 'title here'",
-                                                     timeout=timeout, filters=filters.text
-                                                     )
-
-                if counter > 2:
-                    await c.send_message(chat_id=chat_id,
-                                text=f"You can Cancel the process by sendind 'cancel'",
-                                timeout=timeout, filters=filters.text
-                                )
-                counter += 1
-
-
-            # endregion
-
-            TempVars.Temporary_Vars[chat_id][temp_id]['job_title'] = title_response.text
-
-            seniority = ikb(
-                [
-                    [("Intern", f"{temp_id}|intern")],
-                    [("Junior", f"{temp_id}|junior")],
-                ]
-            )
-
-            seniority_response: Client = await c.ask(
-                chat_id=chat_id,
-                text=f"Seniority :",
-                timeout=timeout,
-                listener_type=ListenerTypes.CALLBACK_QUERY,
-                reply_markup=seniority
-            )
-
-            print(seniority_response)
-            print('good')
-
-        except ListenerTimeout:
-            await q.message.reply('You took too long to answer.')
-
-            if temp_id:
-                del TempVars.Temporary_Vars[temp_id]
-
-    if q_data in seniority_levels:
-
-        TempVars.Temporary_Vars[chat_id][temp_id]['seniority_level'] = q_data
-
-        # region Description Handler
-        description_response: Client = await c.ask(chat_id=chat_id, text=f"Please Send the Description Image",
-                                                   timeout=timeout, filters=filters.photo)
-        print(description_response)
-
-        is_image = False
-        try:
-            if description_response.photo.file_id:
-                is_image = True
-        except:
-            is_image = False
-
-        # await c.send_photo(chat_id=chat_id, photo=description_response.photo.file_id)
-
-        while is_image is False:
-            description_response: Client = await c.ask(chat_id=chat_id,
-                                                       text=f"What is the Description Text",
-                                                       timeout=timeout, filters=filters.text
-                                                       )
-
-            try:
-                if description_response.photo.file_id:
-                    is_image = True
-            except:
-                is_image = False
-        # endregion
-
-
-        print(TempVars.Temporary_Vars)'''
+async def tst(_, __):
+    pass
