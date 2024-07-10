@@ -33,7 +33,7 @@ async def start_command(c: Client, m: Message):
     if is_member_in_group:
         await c.send_message(
             chat_id=chat_id,
-            text=f"Welcome Back {user_name}, You can Use Add job, and follow the Steps to Add a new Job Post",
+            text=f"Welcome Back {user_name}, You can Use **Add job**, and **follow the Steps to --Add a new Job Post--**",
             reply_markup=Buttons.ADD_JOB_BUTTONS
         )
 
@@ -41,7 +41,7 @@ async def start_command(c: Client, m: Message):
     else:
         await c.send_message(
             chat_id=chat_id,
-            text=f"Hello {user_name},\nPlease Subscribe on our (Channel)[{Consts.CHANNEL_LINK}] To be Able to Start Posting Jobs, Then retuen and Click on 'Subscribed' Button To Start The Bot",
+            text=f"Hello {user_name},\nPlease --Subscribe-- on our **[Channel]({Consts.CHANNEL_LINK})** To be Able to Start Posting Jobs, Then retuen and Click on 'Subscribed' Button To Start The Bot",
             reply_markup=Buttons.JOIN_GROUP_BUTTONS
         )
 
