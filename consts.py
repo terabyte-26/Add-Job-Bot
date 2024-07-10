@@ -7,7 +7,7 @@ from pyromod.helpers import helpers as pyromod_helpers
 load_dotenv()
 
 
-class Vars(object):
+class Consts(object):
 
     API_ID: int = int(os.environ.get('API_ID'))
     API_HASH: str = os.environ.get('API_HASH')
@@ -21,12 +21,19 @@ Seniority: {}
 Job Link: {}
 """.strip()
 
-    ADMIN_ID = 1752221538
-    GROUP_ID = -1002091947120
+    ADMIN_IDS = [1752221538, 7018217656]
+    PUBLIC_CHANNEL = -1002154219279  # Targeted Channel where will the jobs posted at the final step
+    ADMINS_GROUP_ID = -1002091947120  # Admins Group that Varify / Reject The jobs
     GROUP_LINK = 'https://t.me/auto_job_poster'
 
 
 class Buttons(object):
+
+    ADD_JOB_BUTTONS: pyromod_helpers = ikb(
+        [
+            [("Add Job", "add_job")],
+        ]
+    )
 
     DEV_TYPE_BUTTONS: pyromod_helpers = ikb(
         [
@@ -59,12 +66,12 @@ class Buttons(object):
     APPROVING_BUTTONS: pyromod_helpers = ikb(
         [
             [("Varify ✅", "verify")],
-            [("delete ❌", "delete")],
+            [("Reject ❌", "reject")],
         ]
     )
 
     JOIN_GROUP_BUTTONS: pyromod_helpers = ikb([
-        [('Group', Vars.GROUP_LINK, 'url')],
+        [('Group', Consts.GROUP_LINK, 'url')],
         [('Joined ✅', 'joined')]
 
     ])

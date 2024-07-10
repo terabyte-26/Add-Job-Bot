@@ -1,37 +1,43 @@
+import asyncio
+
 from bot import app
-from vars import Vars, Buttons, Tags
+from consts import Consts, Buttons, Tags
 
 from pyromod import Client
 from pyromod.types import ListenerTypes
 
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardMarkup, Message, CallbackQuery
 from pyrogram import enums
 
 
+# start Command Handler
 @app.on_message(filters.command(['start']) & filters.private)
 async def start_command(c: Client, m: Message):
     is_member_in_group: bool = False
     chat_id: int = m.chat.id
 
-    f_name = m.chat.first_name
-    l_name = m.chat.last_name
+    f_name: str = m.chat.first_name
+    l_name: str = m.chat.last_name
 
     # Is member or not
     try:
-        await c.get_chat_member(Vars.GROUP_ID, chat_id)
-        is_member_in_group = True
+        await c.get_chat_member(Consts.PUBLIC_CHANNEL, chat_id)
+        is_member_in_group: bool = True
     except:
         pass
 
     user_name: str = f'{f_name} {l_name}'
 
+    # If the user member on the group
     if is_member_in_group:
         await c.send_message(
             chat_id=chat_id,
-            text=f"Welcome Back {user_name}, You can Use /add_job command, and follow the Steps to Add a new Job Post"
+            text=f"Welcome Back {user_name}, You can Use Add job, and follow the Steps to Add a new Job Post",
+            reply_markup=Buttons.ADD_JOB_BUTTONS
         )
 
+    # If the user not a member
     else:
         await c.send_message(
             chat_id=chat_id,
@@ -40,22 +46,27 @@ async def start_command(c: Client, m: Message):
         )
 
 
+# add_job Command Handler
 @app.on_message(filters.command(['add_job']) & filters.private)
-async def add_job(c: Client, m):
+async def add_job(c: Client, m: Message):
+
+
     chat_id: int = m.chat.id
 
+    # Check if the user is member on the Group
     try:
-        await c.get_chat_member(Vars.GROUP_ID, chat_id)
+        await c.get_chat_member(Consts.PUBLIC_CHANNEL, chat_id)
     except:
         await start_command(c, m)
         return
 
+    # Send Typing Action
     await app.send_chat_action(chat_id, enums.ChatAction.TYPING)
 
     developers_type_response = await c.ask(
         chat_id=chat_id,
         text="You are a:",
-        timeout=Vars.TIMEOUT,
+        timeout=Consts.TIMEOUT,
         listener_type=ListenerTypes.CALLBACK_QUERY,
         reply_markup=Buttons.DEV_TYPE_BUTTONS
     )
@@ -94,7 +105,7 @@ async def add_job(c: Client, m):
     seniority_levels_response = await c.ask(
         chat_id=chat_id,
         text="Seniority :",
-        timeout=Vars.TIMEOUT,
+        timeout=Consts.TIMEOUT,
         listener_type=ListenerTypes.CALLBACK_QUERY,
         reply_markup=Buttons.SENIORITY_BUTTONS
     )
@@ -108,7 +119,7 @@ async def add_job(c: Client, m):
     description_response: Client = await c.ask(
         chat_id=chat_id,
         text=f"So you are a {text_seniority_level} {text_developer},\n Please Send the Description Image",
-        timeout=Vars.TIMEOUT,
+        timeout=Consts.TIMEOUT,
         filters=filters.photo
     )
 
@@ -117,7 +128,7 @@ async def add_job(c: Client, m):
     job_link_response = await c.ask(
         chat_id=chat_id,
         text=f"Kindly, Provide the link of this job",
-        timeout=Vars.TIMEOUT,
+        timeout=Consts.TIMEOUT,
         filters=filters.text
     )
 
@@ -130,74 +141,105 @@ async def add_job(c: Client, m):
 
     submit_response = await c.ask(
         chat_id=chat_id,
-        text=Vars.JOB_POST.format(
+        text=Consts.JOB_POST.format(
             text_developer,
             text_seniority_level,
             job_link
         ),
-        timeout=Vars.TIMEOUT,
+        timeout=Consts.TIMEOUT,
         listener_type=ListenerTypes.CALLBACK_QUERY,
         reply_markup=Buttons.SUBMIT_BUTTONS
     )
 
-    print(submit_response)
-
     submit: bool = True if submit_response.data == "submit" else False
+    current_message_id: int = submit_response.message.id
 
     if submit:
 
-        caption = Vars.JOB_POST.format(
+        caption = Consts.JOB_POST.format(
             text_developer,
             text_seniority_level,
             job_link
         ) + '\n\n' + Tags.LIST[developers_type]
 
+
+
         await c.send_photo(
-            chat_id=Vars.ADMIN_ID,
+            chat_id=Consts.ADMINS_GROUP_ID,
             photo=description_photo,
             caption=caption,
             reply_markup=Buttons.APPROVING_BUTTONS
         )
 
-    else:
+    await c.delete_messages(
+        chat_id=chat_id,
+        message_ids=[
+            current_message_id,
+            current_message_id - 1,
+        ]
+    )
 
-        current_message_id: int = submit_response.message.id
-
-        await c.delete_messages(
+    if submit:
+        await c.send_message(
             chat_id=chat_id,
-            message_ids=[
-                current_message_id,
-                current_message_id-1,
-            ]
+            text='✅',
         )
 
 
+
+
+
+
 @app.on_callback_query()
-async def callback(c: Client, q):
+async def callback(c: Client, q: CallbackQuery):
     chat_id: int = q.from_user.id
+
+    print('chat_id', chat_id)
 
     data = q.data
     m: Message = q.message
 
-    if data in 'verify':
-        photo = m.photo.file_id
-        caption = m.caption
-        caption_entities = m.caption_entities
+    print('data', data)
 
-        await c.send_photo(
-            chat_id=Vars.GROUP_ID,
-            photo=photo,
-            caption=caption,
-            caption_entities=caption_entities
-        )
+    if chat_id in Consts.ADMIN_IDS:
 
-    if data in 'delete':
-        await q.message.delete()
+        print('ok')
+
+        if data in 'verify':
+            print('verify')
+
+            photo = m.photo.file_id
+            caption = m.caption
+            caption_entities = m.caption_entities
+
+            await c.send_photo(
+                chat_id=Consts.PUBLIC_CHANNEL,
+                photo=photo,
+                caption=caption,
+                caption_entities=caption_entities
+            )
+
+            await q.message.delete()
+
+            validation_icon_message: Message = await c.send_message(
+                chat_id=Consts.ADMINS_GROUP_ID,
+                text='✅',
+            )
+
+            await asyncio.sleep(2)
+            await validation_icon_message.delete()
+
+        if data in 'reject':
+            await q.message.delete()
 
     if data in 'joined':
         await start_command(c, m)
 
+    if data in 'add_job':
+        await add_job(c, q.message)
+
 
 @app.on_message(filters.group & filters.text)
-async def tst(_, __):
+async def tst(_, m: Message):
+    print(m)
     pass
