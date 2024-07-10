@@ -72,7 +72,7 @@ class Buttons(object):
     )
 
     JOIN_GROUP_BUTTONS: pyromod_helpers = ikb([
-        [('Jobs Jannel', Consts.CHANNEL_LINK, 'url')],
+        [('Jobs Channel', Consts.CHANNEL_LINK, 'url')],
         [('Subscribed ✅', 'subscribed')]
 
     ])
