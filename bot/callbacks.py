@@ -41,7 +41,7 @@ async def start_command(c: Client, m: Message):
     else:
         await c.send_message(
             chat_id=chat_id,
-            text=f"Hello {user_name},\nPlease Join our Group To be Able to Start Posting Jobs, Then retuen and Click on 'Joined' Button To Start The Bot",
+            text=f"Hello {user_name},\nPlease Subscribe on our (Channel)[{Consts.CHANNEL_LINK}] To be Able to Start Posting Jobs, Then retuen and Click on 'Subscribed' Button To Start The Bot",
             reply_markup=Buttons.JOIN_GROUP_BUTTONS
         )
 
@@ -232,7 +232,7 @@ async def callback(c: Client, q: CallbackQuery):
         if data in 'reject':
             await q.message.delete()
 
-    if data in 'joined':
+    if data in 'subscribed':
         await start_command(c, m)
 
     if data in 'add_job':
