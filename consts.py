@@ -21,10 +21,11 @@ Seniority: {}
 Job Link: {}
 """.strip()
 
-    ADMIN_IDS = [1752221538, 7018217656]
-    PUBLIC_CHANNEL = -1002154219279  # Targeted Channel where will the jobs posted at the final step
-    ADMINS_GROUP_ID = -1002091947120  # Admins Group that Varify / Reject The jobs
-    GROUP_LINK = 'https://t.me/+_MyNsWYo0es2ZWU0'
+    ADMIN_IDS: list[int] = [1752221538, 7018217656]
+    PUBLIC_CHANNEL: int = -1002154219279  # Targeted Channel where will the jobs posted at the final step
+    ADMINS_GROUP_ID: int = -1002091947120  # Admins Group that Varify / Reject The jobs
+    CHANNEL_LINK: str = 'https://t.me/pblc_channel'
+    GROUP_LINK: str = 'https://t.me/+_MyNsWYo0es2ZWU0'
 
 
 class Buttons(object):
@@ -71,7 +72,7 @@ class Buttons(object):
     )
 
     JOIN_GROUP_BUTTONS: pyromod_helpers = ikb([
-        [('Group', Consts.GROUP_LINK, 'url')],
+        [('Group', Consts.CHANNEL_LINK, 'url')],
         [('Joined ✅', 'joined')]
 
     ])
