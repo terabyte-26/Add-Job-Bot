@@ -24,7 +24,7 @@ Job Link: {}
     ADMIN_IDS = [1752221538, 7018217656]
     PUBLIC_CHANNEL = -1002154219279  # Targeted Channel where will the jobs posted at the final step
     ADMINS_GROUP_ID = -1002091947120  # Admins Group that Varify / Reject The jobs
-    GROUP_LINK = 'https://t.me/auto_job_poster'
+    GROUP_LINK = 'https://t.me/+_MyNsWYo0es2ZWU0'
 
 
 class Buttons(object):
