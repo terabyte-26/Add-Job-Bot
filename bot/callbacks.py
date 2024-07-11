@@ -76,32 +76,6 @@ async def add_job(c: Client, m: Message):
     list_of_buttons: list[[InlineKeyboardMarkup]] = developers_type_response.message.reply_markup.inline_keyboard
     text_developer = [button[0].text for button in list_of_buttons if button[0].callback_data == developers_type][0]
 
-    '''# region Title Handler
-    title_response: Client = await c.ask(
-        chat_id=chat_id,
-        text=f"What is the job's title as a {text_developer}?\n",
-        timeout=timeout,
-        filters=filters.text
-    )
-
-    counter = 0
-    while not title_response.text.lower().startswith('title: '):
-
-        title_response: Client = await c.ask(chat_id=chat_id,
-                                             text=f"Please put the title as the format:\ntitle: 'title here'",
-                                             timeout=timeout, filters=filters.text
-                                             )
-
-        if counter > 2:
-            await c.send_message(chat_id=chat_id,
-                                 text=f"You can Cancel the process by sendind 'cancel'",
-                                 timeout=timeout, filters=filters.text
-                                 )
-        counter += 1
-
-    title_text = title_response.text
-    # endregion'''
-
     seniority_levels_response = await c.ask(
         chat_id=chat_id,
         text="Seniority :",
@@ -193,20 +167,12 @@ async def add_job(c: Client, m: Message):
 @app.on_callback_query()
 async def callback(c: Client, q: CallbackQuery):
     chat_id: int = q.from_user.id
-
-    print('chat_id', chat_id)
-
     data = q.data
     m: Message = q.message
 
-    print('data', data)
-
     if chat_id in Consts.ADMIN_IDS:
 
-        print('ok')
-
         if data in 'verify':
-            print('verify')
 
             photo = m.photo.file_id
             caption = m.caption
